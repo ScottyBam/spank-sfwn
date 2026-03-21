@@ -54,6 +54,10 @@ sudo spank --halo
 sudo spank --fast
 sudo spank --sexy --fast
 
+# Escalate mode — force escalation (intensity-based) on any pack
+sudo spank --halo --escalate
+sudo spank --custom /path/to/mp3s --escalate
+
 # Custom mode — plays your own MP3 files from a directory
 sudo spank --custom /path/to/mp3s
 
@@ -80,6 +84,16 @@ sudo spank --sexy --speed 0.6
 **Halo mode** (`--halo`): Randomly plays from death sound effects from the Halo video game series when a slap is detected.
 
 **Custom mode** (`--custom`): Randomly plays MP3 files from a custom directory you specify.
+
+**Nikke mode** (`--nikke`): *(coming soon)* Voice lines from Nikke: Goddess of Victory.
+
+**League of Legends mode** (`--league`): *(coming soon)* Champion voice lines from League of Legends.
+
+### Escalation mode
+
+Pass `--escalate` alongside any pack flag to override random playback with intensity-based escalation — the more frequently you slap, the further through the file list it progresses. Files should be named numerically (`01_mild.mp3`, `02_medium.mp3` etc.) for the ordering to make sense.
+
+`--sexy` uses escalation by default. All other packs default to random.
 
 ### Detection tuning
 

@@ -44,18 +44,19 @@ var sexyAudio embed.FS
 var haloAudio embed.FS
 
 var (
-	sexyMode     bool
-	haloMode     bool
-	customPath   string
-	customFiles  []string
-	fastMode     bool
-	minAmplitude float64
-	cooldownMs   int
-	stdioMode      bool
-	volumeScaling  bool
-	paused         bool
-	pausedMu       sync.RWMutex
-	speedRatio     float64
+	sexyMode      bool
+	haloMode      bool
+	customPath    string
+	customFiles   []string
+	fastMode      bool
+	escalateMode  bool
+	minAmplitude  float64
+	cooldownMs    int
+	stdioMode     bool
+	volumeScaling bool
+	paused        bool
+	pausedMu      sync.RWMutex
+	speedRatio    float64
 )
 
 // sensorReady is closed once shared memory is created and the sensor
@@ -252,6 +253,7 @@ Use --halo to play random audio clips from Halo soundtracks on each slap.`,
 	cmd.Flags().BoolVarP(&haloMode, "halo", "H", false, "Enable halo mode")
 	cmd.Flags().StringVarP(&customPath, "custom", "c", "", "Path to custom MP3 audio directory")
 	cmd.Flags().BoolVar(&fastMode, "fast", false, "Enable faster detection tuning (shorter cooldown, higher sensitivity)")
+	cmd.Flags().BoolVarP(&escalateMode, "escalate", "e", false, "Force escalation mode on any pack (intensity increases with slap frequency)")
 	cmd.Flags().StringSliceVar(&customFiles, "custom-files", nil, "Comma-separated list of custom MP3 files")
 	cmd.Flags().Float64Var(&minAmplitude, "min-amplitude", defaultMinAmplitude, "Minimum amplitude threshold (0.0-1.0, lower = more sensitive)")
 	cmd.Flags().IntVar(&cooldownMs, "cooldown", defaultCooldownMs, "Cooldown between responses in milliseconds")
@@ -311,6 +313,11 @@ func run(ctx context.Context, tuning runtimeTuning) error {
 		pack = &soundPack{name: "halo", fs: haloAudio, dir: "audio/halo", mode: modeRandom}
 	default:
 		pack = &soundPack{name: "pain", fs: painAudio, dir: "audio/pain", mode: modeRandom}
+	}
+
+	// --escalate overrides the pack's default play mode
+	if escalateMode {
+		pack.mode = modeEscalation
 	}
 
 	// Only load files if not already set (customFiles case)
