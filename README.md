@@ -16,11 +16,111 @@ Slap your MacBook, it yells back.
 
 Uses the Apple Silicon accelerometer (Bosch BMI286 IMU via IOKit HID) to detect physical hits on your laptop and plays audio responses. Single binary, no dependencies.
 
+---
+
+## sfwn fork — SpankBar + Supervisor
+
+This fork adds two components on top of the original spank binary:
+
+- **spank-supervisor** — a Go daemon that watches `~/.config/spank/config.json` and automatically restarts spank when settings change. Runs as a system LaunchDaemon (root).
+- **SpankBar** — a macOS menu bar app (Swift/AppKit) that lets you switch sound packs, toggle modes, and adjust sensitivity without touching the terminal.
+
+### Prerequisites
+
+- macOS on Apple Silicon (M1 or later — M1 Pro confirmed working)
+- Go 1.21+ — `brew install go`
+- Xcode 15+ — for building SpankBar
+- `ffmpeg` (optional) — `brew install ffmpeg`, used by the normalize script
+- Sound packs in `~/spank-sounds/` — see [Sound packs](#sound-packs) below
+
+### Install
+
+**Step 1 — Install Go binaries and load the daemon**
+
+```bash
+git clone https://github.com/ScottyBam/spank-sfwn
+cd spank-sfwn
+sudo bash scripts/install.sh
+```
+
+This builds `spank` and `spank-supervisor`, installs them to `/usr/local/bin`, signs them, writes the LaunchDaemon plist with your home directory, and starts the daemon. The daemon runs at boot automatically.
+
+**Step 2 — Build SpankBar**
+
+Open Xcode:
+```bash
+open SpankBar/SpankBar.xcodeproj
+```
+
+Press **⌘B** to build. When complete: **Product → Show Build Folder in Finder**, navigate to `Release/`, and drag `SpankBar.app` to `/Applications`.
+
+**Step 3 — Install the SpankBar LaunchAgent (auto-start at login)**
+
+```bash
+make install-agent
+```
+
+SpankBar will now launch automatically at login and appear as a ✋ icon in the menu bar.
+
+### Using SpankBar
+
+Click the ✋ icon in the menu bar to open the control panel:
+
+| Control | What it does |
+|---|---|
+| **Enabled** | Toggles slap detection on/off |
+| Nikke characters | Switch to a custom Nikke voice line pack |
+| **Pain / Sexy / Halo** | Switch to a built-in pack |
+| **Escalation** | Force intensity-based escalation on any pack |
+| **Fast mode** | Short cooldown, higher sensitivity preset |
+| **Volume scaling** | Louder on harder hits |
+| **Sensitivity** | Detection threshold (lower = more sensitive) |
+| **Speed** | Playback speed multiplier |
+| **Cooldown** | Minimum time between responses |
+
+Changes take effect immediately — the supervisor restarts spank with the new settings within one second.
+
+### Sound packs
+
+Nikke characters are loaded from `~/spank-sounds/nikke/<CharacterName>/` and appear in the menu automatically. Each directory should contain MP3 files:
+
+```
+~/spank-sounds/
+└── nikke/
+    ├── Privaty/
+    │   ├── 01.mp3
+    │   └── 02.mp3
+    ├── Rapi/
+    └── ...
+```
+
+Any directory name works — it becomes the label shown in the menu.
+
+### Updating after code changes
+
+```bash
+# Rebuild and redeploy Go binaries + restart daemon
+sudo bash scripts/install.sh
+
+# SpankBar only (after Xcode build)
+sudo cp -R /tmp/SpankBarBuild/Build/Products/Release/SpankBar.app /Applications/
+make install-agent
+```
+
+### Logs
+
+```bash
+tail -f /tmp/spank.log   # detection events (slap #N, amplitude, file played)
+tail -f /tmp/spank.err   # supervisor restarts and errors
+```
+
+---
+
 ## Requirements
 
-- macOS on Apple Silicon (M2+)
+- macOS on Apple Silicon (M1 or later)
 - `sudo` (for IOKit HID accelerometer access)
-- Go 1.26+ (if building from source)
+- Go 1.21+ (if building from source)
 
 ## Install
 
