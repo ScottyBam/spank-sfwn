@@ -28,7 +28,7 @@ This fork adds two components on top of the original spank binary:
 ### Prerequisites
 
 - macOS on Apple Silicon (M1 or later)
-- Go 1.21+ — `brew install go`
+- Go 1.21+ — `brew install go` (used to build the spank binaries from source)
 - `ffmpeg` (optional) — `brew install ffmpeg`, used by the normalize script
 - Sound packs in `~/spank-sounds/` — see [Sound packs](#sound-packs) below
 
@@ -41,9 +41,9 @@ sudo bash scripts/install.sh
 ```
 
 This does everything:
-- Builds and installs `spank` + `spank-supervisor` to `/usr/local/bin`
+- Builds `spank` + `spank-supervisor` from source and installs to `/usr/local/bin`
 - Loads the LaunchDaemon (runs at boot as root)
-- Installs `SpankBar.app` to `/Applications` from the pre-built zip
+- Installs `SpankBar.app` to `/Applications` from the pre-built zip (no Xcode needed)
 - Installs and loads the SpankBar LaunchAgent (auto-starts at login)
 
 SpankBar appears as a ✋ icon in the menu bar.
