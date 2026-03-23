@@ -62,6 +62,8 @@ Flags `escalate`, `fast`, `volumeScaling` map to `--escalate`, `--fast`, `--volu
 
 **Idle behaviour:** When `enabled: false`, the supervisor kills the child and enters a poll loop — it never exits, because launchd would immediately restart it.
 
+**Crash recovery:** If the spank child exits unexpectedly while `enabled: true` (e.g. IOKit error), the supervisor waits 1 second and relaunches it automatically.
+
 ### 3. `SpankBar.app` (Swift/SwiftUI menu bar app)
 Native macOS menu bar app in `SpankBar/` Xcode project within the same repo.
 
@@ -107,7 +109,7 @@ All MP3 clips for a character (including costume variants) reside flat in a sing
 SpankBar does not use `--custom-files`; `--custom <dir>` only.
 
 ### 4. Config file
-`~/.config/spank/config.json` — user-writable. Created with defaults by the supervisor on first run (atomic write). SpankBar reads it but will not create it; if missing on launch, SpankBar polls until it appears.
+`~/.config/spank/config.json` — user-writable. On first run the supervisor creates the `~/.config/spank/` directory if absent, then writes the config atomically (temp file + rename). SpankBar reads it but will not create it; if missing on launch, SpankBar polls until it appears.
 
 ---
 
