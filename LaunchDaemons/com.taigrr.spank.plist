@@ -12,7 +12,7 @@
     <key>EnvironmentVariables</key>
     <dict>
         <key>SPANK_USER_HOME</key>
-        <string>/Users/scott</string>
+        <string>__SPANK_USER_HOME__</string>
     </dict>
     <key>RunAtLoad</key>
     <true/>

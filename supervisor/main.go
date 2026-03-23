@@ -202,6 +202,12 @@ func main() {
 			child = exec.Command(spankBin, flags...)
 			child.Stdout = os.Stdout
 			child.Stderr = os.Stderr
+			// Pass a clean environment — inheriting XPC_SERVICE_NAME from launchd
+			// context interferes with IOKit HID device access.
+			child.Env = []string{
+				"HOME=" + homeDir,
+				"PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin",
+			}
 			if err := child.Start(); err != nil {
 				log.Printf("spank-supervisor: start failed: %v", err)
 				child = nil

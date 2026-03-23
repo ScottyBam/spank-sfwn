@@ -1,7 +1,13 @@
 # Prerequisites: brew install go ffmpeg
 # For SpankBar: Xcode 15+ required
+#
+# Quick start (first install):
+#   make install          — build + install Go binaries + load daemon
+#   make build-app        — build SpankBar.app (Xcode required)
+#   sudo cp -R /tmp/SpankBarBuild/Build/Products/Release/SpankBar.app /Applications/
+#   make install-agent    — install SpankBar LaunchAgent
 
-.PHONY: build build-supervisor build-app run install install-supervisor install-agent normalize clean
+.PHONY: build build-supervisor build-app run install install-supervisor install-daemon install-agent reload-daemon normalize clean
 
 BINARY        := spank
 SUPERVISOR    := spank-supervisor
@@ -10,6 +16,10 @@ APP_NAME      := SpankBar
 APP_DIR       := SpankBar
 AGENT_PLIST   := $(APP_DIR)/com.scott-t-b.spankbar.plist
 AGENT_DEST    := $(HOME)/Library/LaunchAgents/com.scott-t-b.spankbar.plist
+
+DAEMON_PLIST_SRC  := LaunchDaemons/com.taigrr.spank.plist
+DAEMON_PLIST_DEST := /Library/LaunchDaemons/com.taigrr.spank.plist
+DAEMON_LABEL      := com.taigrr.spank
 
 build:
 	go build -o $(BINARY) .
@@ -26,25 +36,36 @@ build-app:
 	           CODE_SIGN_IDENTITY="-" \
 	           build
 	@echo "Built: /tmp/SpankBarBuild/Build/Products/Release/$(APP_NAME).app"
-	@echo "Copy to /Applications/: cp -R /tmp/SpankBarBuild/Build/Products/Release/$(APP_NAME).app /Applications/"
+	@echo "Install: sudo cp -R /tmp/SpankBarBuild/Build/Products/Release/$(APP_NAME).app /Applications/"
 
 run: build
 	sudo ./$(BINARY)
 
-install: build
-	sudo cp $(BINARY) $(INSTALL_DIR)/$(BINARY)
-	sudo cp $(SUPERVISOR) $(INSTALL_DIR)/$(SUPERVISOR)
-	@echo ""
-	@echo "--- Supervisor install steps (run these manually) ---"
-	@echo "1. sudo cp /Library/LaunchDaemons/com.taigrr.spank.plist /Library/LaunchDaemons/com.taigrr.spank.plist.bak"
-	@echo "2. Edit /Library/LaunchDaemons/com.taigrr.spank.plist:"
-	@echo "   Change ProgramArguments to: /usr/local/bin/spank-supervisor"
-	@echo "   Add EnvironmentVariables key with SPANK_USER_HOME=$(HOME)"
-	@echo "3. sudo launchctl unload /Library/LaunchDaemons/com.taigrr.spank.plist"
-	@echo "4. sudo launchctl load /Library/LaunchDaemons/com.taigrr.spank.plist"
+# Install binaries and load daemon — single sudo prompt, no line-split issues
+install:
+	sudo bash scripts/install.sh
 
 install-supervisor: build-supervisor
 	sudo cp $(SUPERVISOR) $(INSTALL_DIR)/$(SUPERVISOR)
+	sudo codesign --force --deep --sign - $(INSTALL_DIR)/$(SUPERVISOR)
+	$(MAKE) reload-daemon
+
+# Install and activate the LaunchDaemon (substitutes current user's home dir)
+install-daemon:
+	sudo cp $(DAEMON_PLIST_SRC) $(DAEMON_PLIST_DEST)
+	sudo sed -i '' 's|__SPANK_USER_HOME__|$(HOME)|g' $(DAEMON_PLIST_DEST)
+	sudo chown root:wheel $(DAEMON_PLIST_DEST)
+	sudo chmod 644 $(DAEMON_PLIST_DEST)
+	@if launchctl print system/$(DAEMON_LABEL) >/dev/null 2>&1; then \
+		sudo launchctl kickstart -k system/$(DAEMON_LABEL); \
+		echo "Daemon reloaded."; \
+	else \
+		sudo launchctl bootstrap system $(DAEMON_PLIST_DEST); \
+		echo "Daemon loaded."; \
+	fi
+
+reload-daemon:
+	sudo launchctl kickstart -k system/$(DAEMON_LABEL)
 
 install-agent:
 	cp $(AGENT_PLIST) $(AGENT_DEST)
