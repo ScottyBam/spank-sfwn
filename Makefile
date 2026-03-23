@@ -8,8 +8,8 @@ SUPERVISOR    := spank-supervisor
 INSTALL_DIR   := /usr/local/bin
 APP_NAME      := SpankBar
 APP_DIR       := SpankBar
-AGENT_PLIST   := $(APP_DIR)/com.scott.spankbar.plist
-AGENT_DEST    := $(HOME)/Library/LaunchAgents/com.scott.spankbar.plist
+AGENT_PLIST   := $(APP_DIR)/com.scott-t-b.spankbar.plist
+AGENT_DEST    := $(HOME)/Library/LaunchAgents/com.scott-t-b.spankbar.plist
 
 build:
 	go build -o $(BINARY) .

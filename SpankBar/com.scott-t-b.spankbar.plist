@@ -4,7 +4,7 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.scott.spankbar</string>
+    <string>com.scott-t-b.spankbar</string>
     <key>ProgramArguments</key>
     <array>
         <string>/Applications/SpankBar.app/Contents/MacOS/SpankBar</string>
