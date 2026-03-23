@@ -10,7 +10,7 @@ import (
 func TestBuildFlags_Pain(t *testing.T) {
 	cfg := Config{Pack: "pain", Escalate: false, Fast: false, VolumeScaling: false,
 		Sensitivity: 0.05, Speed: 1.0, Cooldown: 750}
-	flags := buildFlags(cfg, "/Users/scott")
+	flags := buildFlags(cfg, "/Users/testuser")
 	// pain pack adds no pack flag, but numeric flags are always included
 	for _, f := range []string{"--sexy", "--halo", "--custom"} {
 		if contains(flags, f) {
@@ -30,7 +30,7 @@ func TestBuildFlags_Pain(t *testing.T) {
 
 func TestBuildFlags_Sexy(t *testing.T) {
 	cfg := Config{Pack: "sexy", Sensitivity: 0.05, Speed: 1.0, Cooldown: 750}
-	flags := buildFlags(cfg, "/Users/scott")
+	flags := buildFlags(cfg, "/Users/testuser")
 	if !contains(flags, "--sexy") {
 		t.Errorf("expected --sexy flag, got %v", flags)
 	}
@@ -38,7 +38,7 @@ func TestBuildFlags_Sexy(t *testing.T) {
 
 func TestBuildFlags_Halo(t *testing.T) {
 	cfg := Config{Pack: "halo", Sensitivity: 0.05, Speed: 1.0, Cooldown: 750}
-	flags := buildFlags(cfg, "/Users/scott")
+	flags := buildFlags(cfg, "/Users/testuser")
 	if !contains(flags, "--halo") {
 		t.Errorf("expected --halo flag, got %v", flags)
 	}
@@ -46,11 +46,11 @@ func TestBuildFlags_Halo(t *testing.T) {
 
 func TestBuildFlags_Nikke(t *testing.T) {
 	cfg := Config{Pack: "nikke/Privaty", Sensitivity: 0.05, Speed: 1.0, Cooldown: 750}
-	flags := buildFlags(cfg, "/Users/scott")
+	flags := buildFlags(cfg, "/Users/testuser")
 	if !contains(flags, "--custom") {
 		t.Errorf("expected --custom flag, got %v", flags)
 	}
-	if !contains(flags, "/Users/scott/spank-sounds/nikke/Privaty") {
+	if !contains(flags, "/Users/testuser/spank-sounds/nikke/Privaty") {
 		t.Errorf("expected expanded nikke path, got %v", flags)
 	}
 }
@@ -60,7 +60,7 @@ func TestBuildFlags_AllOptions(t *testing.T) {
 		Pack: "pain", Escalate: true, Fast: true, VolumeScaling: true,
 		Sensitivity: 0.10, Speed: 1.5, Cooldown: 500,
 	}
-	flags := buildFlags(cfg, "/Users/scott")
+	flags := buildFlags(cfg, "/Users/testuser")
 	for _, f := range []string{"--escalate", "--fast", "--volume-scaling"} {
 		if !contains(flags, f) {
 			t.Errorf("expected flag %s, got %v", f, flags)

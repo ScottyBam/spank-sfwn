@@ -38,7 +38,7 @@ func defaultConfig() Config {
 }
 
 // buildFlags translates a Config into spank CLI arguments.
-// homeDir must be the real user home (e.g. /Users/scott), not ~.
+// homeDir must be the real user home (e.g. /Users/alice), not ~.
 func buildFlags(cfg Config, homeDir string) []string {
 	var flags []string
 

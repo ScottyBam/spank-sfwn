@@ -52,4 +52,27 @@ else
     echo "Daemon loaded."
 fi
 
+
+# Install SpankBar.app from pre-built zip
+SPANKBAR_ZIP="$ROOT/dist/SpankBar.app.zip"
+if [ -f "$SPANKBAR_ZIP" ]; then
+    echo "Installing SpankBar.app..."
+    unzip -o "$SPANKBAR_ZIP" -d /Applications/ >/dev/null
+    echo "SpankBar.app installed to /Applications."
+
+    # Install LaunchAgent for the real user (not root)
+    AGENT_PLIST_SRC="$ROOT/SpankBar/com.scott-t-b.spankbar.plist"
+    AGENT_PLIST_DEST="$USER_HOME/Library/LaunchAgents/com.scott-t-b.spankbar.plist"
+    cp "$AGENT_PLIST_SRC" "$AGENT_PLIST_DEST"
+    # Load as the real user
+    if [ -n "$SUDO_USER" ]; then
+        sudo -u "$SUDO_USER" launchctl load "$AGENT_PLIST_DEST"
+    else
+        launchctl load "$AGENT_PLIST_DEST"
+    fi
+    echo "SpankBar LaunchAgent installed and loaded."
+else
+    echo "Warning: dist/SpankBar.app.zip not found — skipping SpankBar install."
+fi
+
 echo "Done. spank is running."

@@ -1,6 +1,6 @@
 /spank
 /spank-supervisor
-dist/
+docs/superpowers/
 *.log
 .crush
 spank.test

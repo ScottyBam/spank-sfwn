@@ -27,15 +27,12 @@ This fork adds two components on top of the original spank binary:
 
 ### Prerequisites
 
-- macOS on Apple Silicon (M1 or later — M1 Pro confirmed working)
+- macOS on Apple Silicon (M1 or later)
 - Go 1.21+ — `brew install go`
-- Xcode 15+ — for building SpankBar
 - `ffmpeg` (optional) — `brew install ffmpeg`, used by the normalize script
 - Sound packs in `~/spank-sounds/` — see [Sound packs](#sound-packs) below
 
 ### Install
-
-**Step 1 — Install Go binaries and load the daemon**
 
 ```bash
 git clone https://github.com/ScottyBam/spank-sfwn
@@ -43,24 +40,13 @@ cd spank-sfwn
 sudo bash scripts/install.sh
 ```
 
-This builds `spank` and `spank-supervisor`, installs them to `/usr/local/bin`, signs them, writes the LaunchDaemon plist with your home directory, and starts the daemon. The daemon runs at boot automatically.
+This does everything:
+- Builds and installs `spank` + `spank-supervisor` to `/usr/local/bin`
+- Loads the LaunchDaemon (runs at boot as root)
+- Installs `SpankBar.app` to `/Applications` from the pre-built zip
+- Installs and loads the SpankBar LaunchAgent (auto-starts at login)
 
-**Step 2 — Build SpankBar**
-
-Open Xcode:
-```bash
-open SpankBar/SpankBar.xcodeproj
-```
-
-Press **⌘B** to build. When complete: **Product → Show Build Folder in Finder**, navigate to `Release/`, and drag `SpankBar.app` to `/Applications`.
-
-**Step 3 — Install the SpankBar LaunchAgent (auto-start at login)**
-
-```bash
-make install-agent
-```
-
-SpankBar will now launch automatically at login and appear as a ✋ icon in the menu bar.
+SpankBar appears as a ✋ icon in the menu bar.
 
 ### Using SpankBar
 
@@ -105,12 +91,14 @@ If you're interested in getting sounds set up, drop me a message.
 ### Updating after code changes
 
 ```bash
-# Rebuild and redeploy Go binaries + restart daemon
+# Rebuild and redeploy everything (Go binaries + SpankBar + daemon restart)
 sudo bash scripts/install.sh
+```
 
-# SpankBar only (after Xcode build)
-sudo cp -R /tmp/SpankBarBuild/Build/Products/Release/SpankBar.app /Applications/
-make install-agent
+To rebuild SpankBar from source and update the pre-built zip (requires Xcode):
+```bash
+make build-app
+cd /tmp/SpankBarBuild/Build/Products/Release && zip -r ~/path/to/spank-sfwn/dist/SpankBar.app.zip SpankBar.app
 ```
 
 ### Logs
