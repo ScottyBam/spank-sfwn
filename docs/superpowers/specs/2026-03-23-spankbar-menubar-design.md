@@ -23,6 +23,7 @@ Replaces `spank-wrapper`. Long-running process supervisor that:
 - Polls `~/.config/spank/config.json` every second
 - Translates config → spank CLI flags
 - Launches spank as a child process
+- Detects changes via SHA-256 hash of the config file contents (not mtime) — avoids spurious restarts when SpankBar writes identical values
 - On config change: SIGTERMs the child, waits for exit, relaunches with new flags
 - On `enabled: false`: kills child, idles until re-enabled
 - Installed at `/usr/local/bin/spank-supervisor`
@@ -35,8 +36,7 @@ Replaces `spank-wrapper`. Long-running process supervisor that:
 | `"pain"` | (none, default) |
 | `"sexy"` | `--sexy` |
 | `"halo"` | `--halo` |
-| `"nikke/<Name>"` | `--custom ~/spank-sounds/nikke/<Name>/` |
-| `"lol/<Name>"` | `--custom ~/spank-sounds/lol/<Name>/` |
+| `"nikke/<Name>"` | `--custom /Users/scott/spank-sounds/nikke/<Name>/` |
 
 **All config flags:**
 
@@ -47,7 +47,7 @@ Replaces `spank-wrapper`. Long-running process supervisor that:
   "escalate": false,
   "fast": false,
   "volumeScaling": false,
-  "sensitivity": 0.25,
+  "sensitivity": 0.05,
   "speed": 1.0,
   "cooldown": 750
 }
@@ -56,6 +56,12 @@ Replaces `spank-wrapper`. Long-running process supervisor that:
 Flags `escalate`, `fast`, `volumeScaling` map to `--escalate`, `--fast`, `--volume-scaling`.
 `sensitivity` → `--min-amplitude`, `speed` → `--speed`, `cooldown` → `--cooldown`.
 
+**Path expansion:** The supervisor runs as root and must expand the user home directory explicitly (e.g. `/Users/scott/`) — `~` is not expanded by `exec` when called from Go.
+
+**`--stdio` mode:** The supervisor does NOT use `--stdio`. It manages spank purely as a child process (stdout/stderr forwarded to log). Crash detection is via process exit, not JSON events.
+
+**Idle behaviour:** When `enabled: false`, the supervisor kills the child and enters a poll loop — it never exits, because launchd would immediately restart it.
+
 ### 3. `SpankBar.app` (Swift/SwiftUI menu bar app)
 Native macOS menu bar app in `SpankBar/` Xcode project within the same repo.
 
@@ -63,9 +69,10 @@ Native macOS menu bar app in `SpankBar/` Xcode project within the same repo.
 - `NSStatusItem` with SF Symbols icon (`hand.raised.fill` or `waveform`)
 - `INFOPLIST_KEY_LSUIElement = YES` (hidden from Dock)
 - Reads `~/.config/spank/config.json` on launch and on menu open
-- Writes config atomically on any menu selection
+- Writes config atomically (temp file + rename) on any menu selection
 - No IPC — purely file-based
 - LaunchAgent at `~/Library/LaunchAgents/com.scott.spankbar.plist` for auto-start at login
+- If the config file does not exist on launch, SpankBar polls every 500ms until it appears (up to 10 seconds); if still absent, shows menu greyed out with "Waiting for daemon…" and continues polling. Menu becomes active once the file appears.
 
 **Menu structure:**
 
@@ -73,15 +80,10 @@ Native macOS menu bar app in `SpankBar/` Xcode project within the same repo.
 [icon]
 ✓ Enabled
 ──────────────
-● Privaty          ← checkmark on active pack
+● Privaty          ← example: checkmark on active pack (list is dynamic)
   Rapi
   Anis
-  Neon
-  Alice
-  Blanc
-  Modernia
-  Noir
-  Scarlet
+  ...              ← all subdirs of ~/spank-sounds/nikke/, sorted alphabetically
   ──────────
   Pain
   Sexy
@@ -98,10 +100,14 @@ Cooldown     ▸  [350ms / 500ms / 750ms / 1000ms]
 Quit
 ```
 
-Nikke characters are auto-discovered at runtime by reading `~/spank-sounds/nikke/`. Adding new characters requires no code change.
+Nikke characters are **auto-discovered at runtime** by reading `~/spank-sounds/nikke/` on each menu open. The list above is example output only — all subdirectories are shown, sorted alphabetically. Adding new characters requires no code change.
+
+All MP3 clips for a character (including costume variants) reside flat in a single directory (e.g. `Privaty/Privaty_Damaged_1.mp3`, `Privaty/Privaty_(Sharp_Lesson)_Death.mp3`). No sub-subdirectories exist; the `--custom` path points directly at the character directory.
+
+SpankBar does not use `--custom-files`; `--custom <dir>` only.
 
 ### 4. Config file
-`~/.config/spank/config.json` — user-writable, created with defaults on first run by either the supervisor or SpankBar.
+`~/.config/spank/config.json` — user-writable. Created with defaults by the supervisor on first run (atomic write). SpankBar reads it but will not create it; if missing on launch, SpankBar polls until it appears.
 
 ---
 
@@ -163,6 +169,7 @@ spank-sfwn/
 ## Out of Scope
 
 - Embedding Nikke/LoL packs into the binary (use `--custom` at runtime instead)
-- LoL pack support in menu (directory exists but no clips downloaded yet)
+- LoL pack support in menu (directory exists but no clips downloaded yet; not in supervisor flag table)
 - Slider UI for sensitivity/speed (submenus with fixed values only)
 - Live spank event display in menu bar
+- `--stdio` integration (supervisor manages spank as a plain child process only)
