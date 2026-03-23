@@ -100,6 +100,8 @@ Custom sound packs live under `~/spank-sounds/<category>/<CharacterName>/`. Each
 
 Known categories have friendly display names in the menu (`lol` → **League of Legends**, `nikke` → **Nikke**, `overwatch` → **Overwatch**). Any other folder name is title-cased automatically.
 
+If you're interested in getting sounds set up, drop me a message.
+
 ### Updating after code changes
 
 ```bash
