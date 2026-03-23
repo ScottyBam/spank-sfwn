@@ -1,29 +1,30 @@
-import XCTest
+import Testing
+import Foundation
 @testable import SpankBar
 
-final class SpankConfigTests: XCTestCase {
+@Suite struct SpankConfigTests {
 
-    func testDecodeFromJSON() throws {
+    @Test func decodeFromJSON() throws {
         let json = """
         {"enabled":true,"pack":"nikke/Privaty","escalate":false,"fast":false,
          "volumeScaling":false,"sensitivity":0.05,"speed":1.0,"cooldown":750}
         """.data(using: .utf8)!
         let cfg = try JSONDecoder().decode(SpankConfig.self, from: json)
-        XCTAssertEqual(cfg.pack, "nikke/Privaty")
-        XCTAssertEqual(cfg.sensitivity, 0.05)
-        XCTAssertEqual(cfg.cooldown, 750)
-        XCTAssertTrue(cfg.enabled)
+        #expect(cfg.pack == "nikke/Privaty")
+        #expect(cfg.sensitivity == 0.05)
+        #expect(cfg.cooldown == 750)
+        #expect(cfg.enabled == true)
     }
 
-    func testEncodeToJSON() throws {
+    @Test func encodeToJSON() throws {
         var cfg = SpankConfig.defaults
         cfg.pack = "sexy"
         let data = try JSONEncoder().encode(cfg)
         let decoded = try JSONDecoder().decode(SpankConfig.self, from: data)
-        XCTAssertEqual(decoded.pack, "sexy")
+        #expect(decoded.pack == "sexy")
     }
 
-    func testAtomicWriteAndRead() throws {
+    @Test func atomicWriteAndRead() throws {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("test-spank-\(UUID().uuidString).json")
         defer { try? FileManager.default.removeItem(at: url) }
@@ -33,10 +34,10 @@ final class SpankConfigTests: XCTestCase {
         try cfg.write(to: url)
 
         let loaded = try SpankConfig.read(from: url)
-        XCTAssertEqual(loaded.pack, "halo")
+        #expect(loaded.pack == "halo")
     }
 
-    func testDiscoverNikkeCharacters() throws {
+    @Test func discoverNikkeCharacters() throws {
         let base = FileManager.default.temporaryDirectory
             .appendingPathComponent("nikke-test-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: base) }
@@ -46,6 +47,6 @@ final class SpankConfigTests: XCTestCase {
         FileManager.default.createFile(atPath: base.appendingPathComponent("notes.txt").path, contents: nil)
 
         let chars = SpankConfig.discoverNikkeCharacters(in: base)
-        XCTAssertEqual(chars.sorted(), ["Privaty", "Rapi"])
+        #expect(chars.sorted() == ["Privaty", "Rapi"])
     }
 }
