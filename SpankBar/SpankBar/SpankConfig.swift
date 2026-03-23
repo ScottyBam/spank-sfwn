@@ -28,9 +28,9 @@ struct SpankConfig: Codable {
             .appendingPathComponent(".config/spank/config.json")
     }
 
-    static var nikkeBaseURL: URL {
+    static var soundsBaseURL: URL {
         FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("spank-sounds/nikke")
+            .appendingPathComponent("spank-sounds")
     }
 
     /// Read config from a URL. Throws if file is missing or malformed.
@@ -50,13 +50,28 @@ struct SpankConfig: Codable {
         _ = try FileManager.default.replaceItemAt(url, withItemAt: tmp)
     }
 
-    /// Returns sorted list of character names from the nikke sounds directory.
-    static func discoverNikkeCharacters(in base: URL = nikkeBaseURL) -> [String] {
+    /// Returns sorted character names from a given subfolder of ~/spank-sounds/.
+    static func discoverCharacters(inSubfolder subfolder: String, base: URL = soundsBaseURL) -> [String] {
+        let dir = base.appendingPathComponent(subfolder)
+        guard let contents = try? FileManager.default.contentsOfDirectory(
+            at: dir, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsHiddenFiles
+        ) else { return [] }
+        return contents
+            .filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true }
+            .map { $0.lastPathComponent }
+            .sorted()
+    }
+
+    /// Returns all custom sound categories: subdirs of ~/spank-sounds/ that themselves contain subdirs.
+    static func discoverCategories(base: URL = soundsBaseURL) -> [String] {
         guard let contents = try? FileManager.default.contentsOfDirectory(
             at: base, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsHiddenFiles
         ) else { return [] }
         return contents
-            .filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true }
+            .filter { url in
+                guard (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true else { return false }
+                return !discoverCharacters(inSubfolder: url.lastPathComponent, base: base).isEmpty
+            }
             .map { $0.lastPathComponent }
             .sorted()
     }

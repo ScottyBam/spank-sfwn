@@ -37,16 +37,34 @@ import Foundation
         #expect(loaded.pack == "halo")
     }
 
-    @Test func discoverNikkeCharacters() throws {
+    @Test func discoverCharacters() throws {
         let base = FileManager.default.temporaryDirectory
-            .appendingPathComponent("nikke-test-\(UUID().uuidString)")
+            .appendingPathComponent("sounds-test-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: base) }
 
-        try FileManager.default.createDirectory(at: base.appendingPathComponent("Privaty"), withIntermediateDirectories: true)
-        try FileManager.default.createDirectory(at: base.appendingPathComponent("Rapi"), withIntermediateDirectories: true)
-        FileManager.default.createFile(atPath: base.appendingPathComponent("notes.txt").path, contents: nil)
+        try FileManager.default.createDirectory(at: base.appendingPathComponent("nikke/Privaty"), withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: base.appendingPathComponent("nikke/Rapi"), withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: base.appendingPathComponent("lol/Ahri"), withIntermediateDirectories: true)
+        FileManager.default.createFile(atPath: base.appendingPathComponent("nikke/notes.txt").path, contents: nil)
 
-        let chars = SpankConfig.discoverNikkeCharacters(in: base)
-        #expect(chars.sorted() == ["Privaty", "Rapi"])
+        let nikke = SpankConfig.discoverCharacters(inSubfolder: "nikke", base: base)
+        #expect(nikke == ["Privaty", "Rapi"])
+
+        let lol = SpankConfig.discoverCharacters(inSubfolder: "lol", base: base)
+        #expect(lol == ["Ahri"])
+    }
+
+    @Test func discoverCategories() throws {
+        let base = FileManager.default.temporaryDirectory
+            .appendingPathComponent("cat-test-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: base) }
+
+        try FileManager.default.createDirectory(at: base.appendingPathComponent("nikke/Privaty"), withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: base.appendingPathComponent("lol/Ahri"), withIntermediateDirectories: true)
+        // empty dir — should not appear as a category
+        try FileManager.default.createDirectory(at: base.appendingPathComponent("empty"), withIntermediateDirectories: true)
+
+        let cats = SpankConfig.discoverCategories(base: base)
+        #expect(cats == ["lol", "nikke"])
     }
 }

@@ -80,17 +80,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(enabledItem)
         menu.addItem(.separator())
 
-        // Nikke characters (dynamic)
-        let nikkeChars = SpankConfig.discoverNikkeCharacters()
-        for char in nikkeChars {
-            let packValue = "nikke/\(char)"
-            let item = NSMenuItem(title: char, action: #selector(selectPack(_:)), keyEquivalent: "")
-            item.target = self
-            item.representedObject = packValue
-            item.state = config.pack == packValue ? .on : .off
-            menu.addItem(item)
+        // Custom pack submenus — one per discovered category (nikke, lol, overwatch, …)
+        let categories = SpankConfig.discoverCategories()
+        for category in categories {
+            let characters = SpankConfig.discoverCharacters(inSubfolder: category)
+            let sub = NSMenu()
+            for char in characters {
+                let packValue = "\(category)/\(char)"
+                let item = NSMenuItem(title: char, action: #selector(selectPack(_:)), keyEquivalent: "")
+                item.target = self
+                item.representedObject = packValue
+                item.state = config.pack == packValue ? .on : .off
+                sub.addItem(item)
+            }
+            let categoryItem = NSMenuItem(title: categoryDisplayName(category), action: nil, keyEquivalent: "")
+            categoryItem.submenu = sub
+            menu.addItem(categoryItem)
         }
-        if !nikkeChars.isEmpty { menu.addItem(.separator()) }
+        if !categories.isEmpty { menu.addItem(.separator()) }
 
         // Embedded packs
         for (title, value) in [("Pain", "pain"), ("Sexy", "sexy"), ("Halo", "halo")] {
@@ -146,6 +153,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         parent.submenu = sub
         return parent
+    }
+
+    private func categoryDisplayName(_ folder: String) -> String {
+        switch folder.lowercased() {
+        case "lol": return "League of Legends"
+        case "nikke": return "Nikke"
+        case "overwatch": return "Overwatch"
+        default: return folder.prefix(1).uppercased() + folder.dropFirst()
+        }
     }
 
     private func quitItem() -> NSMenuItem {

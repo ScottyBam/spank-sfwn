@@ -82,19 +82,23 @@ Changes take effect immediately — the supervisor restarts spank with the new s
 
 ### Sound packs
 
-Nikke characters are loaded from `~/spank-sounds/nikke/<CharacterName>/` and appear in the menu automatically. Each directory should contain MP3 files:
+Custom sound packs live under `~/spank-sounds/<category>/<CharacterName>/`. Each category gets its own submenu in SpankBar. New categories and characters are discovered automatically — no config needed.
 
 ```
 ~/spank-sounds/
-└── nikke/
-    ├── Privaty/
-    │   ├── 01.mp3
-    │   └── 02.mp3
-    ├── Rapi/
-    └── ...
+├── nikke/
+│   ├── Privaty/
+│   │   ├── 01.mp3
+│   │   └── 02.mp3
+│   └── Rapi/
+├── lol/
+│   ├── Ahri/
+│   └── Jinx/
+└── overwatch/
+    └── D_Va/
 ```
 
-Any directory name works — it becomes the label shown in the menu.
+Known categories have friendly display names in the menu (`lol` → **League of Legends**, `nikke` → **Nikke**, `overwatch` → **Overwatch**). Any other folder name is title-cased automatically.
 
 ### Updating after code changes
 
